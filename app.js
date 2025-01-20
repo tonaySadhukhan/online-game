@@ -27,8 +27,9 @@ io.on('connection', (socket) => {
     socket.on('join room', (data) => {
         const roomSize = io.sockets.adapter.rooms.get(data)?.size || 0;
         console.log(`Room joined: ${data}`);
-        if(roomSize<2){
+        if(roomSize<=2){
         socket.join(data);
+        socket.to(data).emit('playerJoined', socket.id);
         } else{
             socket.emit('full');
         }
