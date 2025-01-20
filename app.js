@@ -13,9 +13,11 @@ const io = new Server(server, {
 // Middleware (optional)
 app.use(express.static('public')); // Serve static files
 
+
+
 // Socket.IO event handling
 io.on('connection', (socket) => {
-    console.log('A user connected',socket.id);
+    console.log('A user connected', socket.id);
 
     socket.on('create room', (data) => {
         console.log(`Room created: ${data}`);
@@ -23,14 +25,19 @@ io.on('connection', (socket) => {
     });
 
     socket.on('join room', (data) => {
+        const roomSize = io.sockets.adapter.rooms.get(data)?.size || 0;
         console.log(`Room joined: ${data}`);
+        if(roomSize<2){
         socket.join(data);
+        } else{
+            socket.emit('full');
+        }
     });
 
     // Example: Listening for custom events
-    socket.on('message', (data) => {
-        console.log(`Message received: ${data}`);
-        io.emit('message', data); // Broadcast the message to all clients
+    socket.on('sendMessageToRoom', (roomId, message) => {
+        console.log(`Message received from ${roomId}: ${message}`);
+        socket.to(roomId).emit('message', { roomId, message }); // Broadcast the message to all clients in the room
     });
 
     // Handle disconnection
